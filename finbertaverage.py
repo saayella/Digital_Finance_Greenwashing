@@ -1,10 +1,8 @@
 import re
 import nltk
-#nltk.download("punkt_tab")
+nltk.download("punkt_tab")
 from nltk.tokenize import sent_tokenize, word_tokenize
-#nltk.download("punkt")
-file_path = "/Users/ganeshchinnasamy/Documents/CITS3200/FASTRAK-AnnualReport2004.txt"  # Replace with the actual path to your text file
-
+nltk.download("punkt")
 
 # --- Step 1: Define lexicon ---
 digital_finance_lexicon = [
@@ -84,24 +82,42 @@ def score_document(document, lexicon):
     doc_score = sum(sentence_scores) / len(sentence_scores)  # mean score
     return doc_score, list(zip(sentences, sentence_scores))
 
-# --- Step 3: Example document ---
-sample_doc = """
-In 2023, the bank expanded its mobile banking and digital wallet services.
-We invested heavily in blockchain technology to improve transparency.
-Our employees worked hard to deliver strong results across all divisions.
-The company launched a crowdfunding platform for SMEs to access finance.
-"""
-file_content_string = ''
+def score_sentence(sentence: str, lexicon) -> float:
+    """Score a single sentence based on lexicon matches."""
+    words = word_tokenize(sentence.lower())
+    total_words = len(words) - 1
+    if total_words <= 0:
+        return 0.0
 
-with open(file_path, 'r', encoding='utf-8') as file:
-        file_content_string = file.read()
+    match_count = 0
+    for tokens in lexicon:
+        n = len(tokens)
+        for i in range(total_words - n + 1):
+            if words[i:i+n] == tokens:
+                match_count += 1
 
+    return (match_count / total_words) * 50  # normalize to 0–50
 
-# Apply pipeline
-doc_score, details = score_document(file_content_string, lexicon_tokens)
+def score_document(document: str, lexicon):
+    """Score an entire document (string of text)."""
+    sentences = sent_tokenize(document)
+    if not sentences:
+        return 0.0, []
 
-print("Document Digital Finance Score:", round(doc_score, 3))
-print("\nSentence-level scores:")
-#for sent, score in details:
-#    if score > 0:
- #       print(f"- {sent.strip()} --> {round(score, 3)}")
+    sentence_scores = [score_sentence(sent, lexicon) * 2 for sent in sentences]  # scale to 100
+    doc_score = sum(sentence_scores) / len(sentence_scores)
+    return doc_score, list(zip(sentences, sentence_scores))
+
+# --- Optional demo when run directly ---
+if __name__ == "__main__":
+    sample_doc = """
+    In 2023, the bank expanded its mobile banking and digital wallet services.
+    We invested heavily in blockchain technology to improve transparency.
+    Our employees worked hard to deliver strong results across all divisions.
+    The company launched a crowdfunding platform for SMEs to access finance.
+    """
+    doc_score, details = score_document(sample_doc, lexicon_tokens)
+    print("Demo score:", round(doc_score, 3))
+    for sent, sc in details:
+        if sc > 0:
+            print(f"- {sent.strip()} --> {round(sc, 3)}")
