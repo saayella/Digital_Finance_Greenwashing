@@ -1,8 +1,8 @@
 import csv
 from openai import OpenAI
 
-INPUT_FILE = "dataset_creation/paragraphs.txt"
-OUTPUT_FILE = "dataset_creation/dataset.csv"
+INPUT_FILE = "dataset_creation/paragraphs2.txt"
+OUTPUT_FILE = "dataset_creation/dataset3.csv"
 
 GUIDELINES = """
 You are an expert financial analyst.
